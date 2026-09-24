@@ -1,6 +1,5 @@
-package com.javanauta.usuario.business.dto;
+package com.javanauta.usuario.business.dto.response;
 
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class EnderecoDTO {
+public class EnderecoResponse {
 
     private Long id;
     private String rua;
