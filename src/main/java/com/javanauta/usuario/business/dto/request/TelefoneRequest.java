@@ -1,4 +1,4 @@
-package com.javanauta.usuario.business.dto;
+package com.javanauta.usuario.business.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,9 +11,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TelefoneDTO {
+public class TelefoneRequest {
 
-    private Long id;
     private String numero;
     private String ddd;
 }
