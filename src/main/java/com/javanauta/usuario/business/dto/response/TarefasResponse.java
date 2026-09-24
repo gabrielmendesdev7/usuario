@@ -1,4 +1,4 @@
-package com.javanauta.usuario.business.dto.response.response;
+package com.javanauta.usuario.business.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.javanauta.usuario.infrastructure.enums.StatusNotificacaoEnum;
