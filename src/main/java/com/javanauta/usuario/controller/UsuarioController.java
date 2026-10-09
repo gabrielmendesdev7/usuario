@@ -1,6 +1,7 @@
 package com.javanauta.usuario.controller;
 
 import com.javanauta.usuario.business.UsuarioService;
+import com.javanauta.usuario.business.ViaCepService;
 import com.javanauta.usuario.business.dto.request.EnderecoRequest;
 import com.javanauta.usuario.business.dto.request.LoginRequest;
 import com.javanauta.usuario.business.dto.request.TelefoneRequest;
@@ -9,7 +10,13 @@ import com.javanauta.usuario.business.dto.request.UsuarioUpdateRequest;
 import com.javanauta.usuario.business.dto.response.EnderecoResponse;
 import com.javanauta.usuario.business.dto.response.TelefoneResponse;
 import com.javanauta.usuario.business.dto.response.UsuarioResponse;
+import com.javanauta.usuario.infrastructure.clients.ViaCepResponse;
 import com.javanauta.usuario.infrastructure.security.JwtUtil;
+import com.javanauta.usuario.infrastructure.security.SecurityConfig;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,13 +36,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/usuario")
 @RequiredArgsConstructor
+@Tag(name = "Usuário", description = "Cadastro e login de usuários")
+@SecurityRequirement(name = SecurityConfig.SECURITY_SCHEME)
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final ViaCepService viaCepService;
 
     @PostMapping
+    @Operation(summary = "Salvar Usuários", description = "Cria um novo usuário")
+    @ApiResponse(responseCode = "200", description = "Usuário salvo com sucesso")
+    @ApiResponse(responseCode = "409", description = "Usuário já cadastrado")
+    @ApiResponse(responseCode = "500", description = "Erro do servidor")
     public ResponseEntity<UsuarioResponse> salvaUsuario(@RequestBody UsuarioRequest request) {
         return ResponseEntity.ok(usuarioService.salvaUsuario(request));
     }
@@ -88,6 +102,11 @@ public class UsuarioController {
     public ResponseEntity<TelefoneResponse> cadastraTelefone(@RequestBody TelefoneRequest request,
                                                         @RequestHeader("Authorization") String token) {
         return ResponseEntity.ok(usuarioService.cadastraTelefone(token, request));
+    }
+
+    @GetMapping("/endereco/{cep}")
+    public ResponseEntity<ViaCepResponse> buscarEnderecoPorCep(@PathVariable String cep) {
+        return ResponseEntity.ok(viaCepService.buscarDadosEndereco(cep));
     }
 
 }
