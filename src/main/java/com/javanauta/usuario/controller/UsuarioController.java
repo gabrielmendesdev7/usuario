@@ -41,8 +41,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
-    private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
     private final ViaCepService viaCepService;
 
     @PostMapping
@@ -55,17 +53,15 @@ public class UsuarioController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(),
-                        request.getSenha())
-        );
-        return "Bearer " + jwtUtil.generateToken(authentication.getName());
+    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+        String token = usuarioService.autenticarUsuario(loginRequest);
+        return ResponseEntity.ok(token);
     }
 
     @GetMapping
     public ResponseEntity<UsuarioResponse> buscarUsuarioPorEmail(@RequestParam("email") String email) {
-        return ResponseEntity.ok(usuarioService.buscarUsuarioPorEmail(email));
+        UsuarioResponse usuarioResponse = usuarioService.buscarUsuarioPorEmail(email);
+        return ResponseEntity.ok(usuarioResponse);
     }
 
     @DeleteMapping("/{email}")
