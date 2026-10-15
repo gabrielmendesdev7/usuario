@@ -2,6 +2,7 @@ package com.javanauta.usuario.business;
 
 import com.javanauta.usuario.business.converter.UsuarioConverter;
 import com.javanauta.usuario.business.dto.request.EnderecoRequest;
+import com.javanauta.usuario.business.dto.request.LoginRequest;
 import com.javanauta.usuario.business.dto.request.TelefoneRequest;
 import com.javanauta.usuario.business.dto.request.UsuarioRequest;
 import com.javanauta.usuario.business.dto.request.UsuarioUpdateRequest;
@@ -13,11 +14,18 @@ import com.javanauta.usuario.infrastructure.entity.Telefone;
 import com.javanauta.usuario.infrastructure.entity.Usuario;
 import com.javanauta.usuario.infrastructure.exceptions.ConflictException;
 import com.javanauta.usuario.infrastructure.exceptions.ResourceNotFoundException;
+import com.javanauta.usuario.infrastructure.exceptions.UnauthorizedException;
 import com.javanauta.usuario.infrastructure.repository.EnderecoRepository;
 import com.javanauta.usuario.infrastructure.repository.TelefoneRepository;
 import com.javanauta.usuario.infrastructure.repository.UsuarioRepository;
 import com.javanauta.usuario.infrastructure.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,12 +39,25 @@ public class UsuarioService {
     private final JwtUtil jwtUtil;
     private final EnderecoRepository enderecoRepository;
     private final TelefoneRepository telefoneRepository;
+    private final AuthenticationManager authenticationManager;
 
     public UsuarioResponse salvaUsuario(UsuarioRequest request) {
         emailExiste(request.getEmail());
         request.setSenha(passwordEncoder.encode(request.getSenha()));
         Usuario usuario = usuarioConverter.paraUsuario(request);
         return usuarioConverter.paraUsuarioResponse(usuarioRepository.save(usuario));
+    }
+
+    public String autenticarUsuario(LoginRequest request) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(),
+                            request.getSenha())
+            );
+            return "Bearer " + jwtUtil.generateToken(authentication.getName());
+        } catch (BadCredentialsException | UsernameNotFoundException | AuthorizationDeniedException ex) {
+            throw new UnauthorizedException("Usuário ou senha inválidos: ",  ex.getCause());
+        }
     }
 
     public void emailExiste(String email) {
@@ -46,7 +67,7 @@ public class UsuarioService {
                 throw new ConflictException("Email já existe");
             }
         } catch (ConflictException e) {
-            throw new ConflictException("Email já cadastrado" + e.getCause());
+            throw new ConflictException("Email já cadastrado " + email);
         }
     }
 
